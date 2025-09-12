@@ -66,7 +66,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-5 pb-20">
       <Card>
         <CardBody className="grid gap-2">
           <h2 className="text-xl font-semibold">Prochaine révision</h2>

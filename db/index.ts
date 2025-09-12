@@ -86,6 +86,17 @@ export async function addQuizAttempt(attempt: QuizAttempt) {
   return attempt;
 }
 
+export async function completeQuizAttempt(
+  id: string,
+  params: { aiScore?: number; finishedAt?: Date } = {}
+) {
+  const data: Partial<QuizAttempt> = {
+    finishedAt: params.finishedAt ?? new Date(),
+  };
+  if (typeof params.aiScore === "number") data.aiScore = params.aiScore;
+  await db.quizAttempts.update(id, data);
+}
+
 export async function listTags() {
   return db.tags.orderBy("name").toArray();
 }

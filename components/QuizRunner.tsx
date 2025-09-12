@@ -6,7 +6,7 @@ import { Spinner } from "@heroui/spinner";
 import { Progress } from "@heroui/progress";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { quizProvider, type Quiz } from "@/lib/quizProvider";
-import { addQuizAttempt } from "@/db";
+import { addQuizAttempt, completeQuizAttempt } from "@/db";
 
 export function QuizRunner({
   course,
@@ -29,13 +29,16 @@ export function QuizRunner({
   );
   const [justCorrect, setJustCorrect] = useState(false);
   const [justWrong, setJustWrong] = useState(false);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       setLoading(true);
+      const id = crypto.randomUUID();
+      setAttemptId(id);
       await addQuizAttempt({
-        id: crypto.randomUUID(),
+        id,
         courseId: course.id,
         startedAt: new Date(),
       });
@@ -64,6 +67,9 @@ export function QuizRunner({
     }));
     const score = await quizProvider.score(a, quiz);
     setScored({ aiScore: score });
+    if (attemptId) {
+      await completeQuizAttempt(attemptId, { aiScore: score });
+    }
   }
 
   function validateCurrent() {
