@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@config "../tailwind.config.js";
+
+/* Quiz micro-animations (scoped + wrapped in utilities layer) */
+@layer utilities {
+  @keyframes quiz-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-3px); }
+    40% { transform: translateX(3px); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(2px); }
+  }
+  .quiz-animate-shake { animation: quiz-shake 300ms ease-in-out; will-change: transform; }
+
+  @keyframes quiz-flash-correct {
+    0% { background-color: rgba(34, 197, 94, 0); }
+    30% { background-color: rgba(34, 197, 94, 0.18); }
+    100% { background-color: rgba(34, 197, 94, 0); }
+  }
+  .quiz-animate-flash-correct { animation: quiz-flash-correct 600ms ease-in-out; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quiz-animate-shake, .quiz-animate-flash-correct { animation: none !important; }
+  }
+}
