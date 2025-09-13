@@ -53,7 +53,11 @@ export function CourseForm({ onCreated }: { onCreated?: () => void }) {
       const next = initialNextDate();
       await upsertInitialPlan(course.id, next);
       try {
-        await scheduleReminders({ courseId: course.id, courseName: course.name, nextReviewAt: next });
+        await scheduleReminders({
+          courseId: course.id,
+          courseName: course.name,
+          nextReviewAt: next,
+        });
       } catch {}
       setName("");
       setDescription("");

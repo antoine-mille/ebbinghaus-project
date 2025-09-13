@@ -7,7 +7,8 @@ export function formatRelativeToNow(target: Date, now = new Date()) {
 
   const inPast = diffMs < 0;
 
-  const plural = (n: number, s: string, p?: string) => (n === 1 ? s : p ?? `${s}s`);
+  const plural = (n: number, s: string, p?: string) =>
+    n === 1 ? s : (p ?? `${s}s`);
 
   let value: number;
   let unit: string;
@@ -34,4 +35,3 @@ export function formatRelativeToNow(target: Date, now = new Date()) {
 
   return inPast ? `il y a ${value} ${unit}` : `dans ${value} ${unit}`;
 }
-

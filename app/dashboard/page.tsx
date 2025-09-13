@@ -10,7 +10,6 @@ import { ReviewCard } from "@/components/ReviewCard";
 import { db, listDueCourses, getLatestPlans } from "@/db";
 import { formatRelativeToNow } from "@/lib/time";
 import { EnablePush } from "@/components/EnablePush";
-import { scheduleMinutely } from "@/lib/scheduleClient";
 
 export default function DashboardPage() {
   const [priority, setPriority] = useState<{
@@ -79,16 +78,6 @@ export default function DashboardPage() {
                 status={priority.status ?? null}
                 onDeleted={refresh}
               />
-              {process.env.NEXT_PUBLIC_PUSH_TEST === "1" ? (
-                <Button
-                  variant="flat"
-                  onPress={() =>
-                    scheduleMinutely({ courseId: priority.course.id, courseName: priority.course.name, minutes: 10 })
-                  }
-                >
-                  Programmer rappels chaque minute (10 min)
-                </Button>
-              ) : null}
               {priority.next ? (
                 <p className="text-xs text-default-500">
                   {formatRelativeToNow(new Date(priority.next))} • le{" "}

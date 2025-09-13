@@ -12,7 +12,10 @@ export function scheduleNext(params: {
   const now = params.now ?? new Date();
   // Success advances one level; fail repeats the same level (no regression)
   const delta = params.outcome === "success" ? 1 : 0;
-  const nextLevel = Math.max(0, Math.min(params.level + delta, intervalsMs.length - 1));
+  const nextLevel = Math.max(
+    0,
+    Math.min(params.level + delta, intervalsMs.length - 1)
+  );
   const nextDate = new Date(now.getTime() + intervalsMs[nextLevel]);
   return { nextLevel, nextDate };
 }
