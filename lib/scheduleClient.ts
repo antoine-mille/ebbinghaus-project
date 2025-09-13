@@ -47,14 +47,57 @@ export async function scheduleReminders(params: {
   });
 }
 
-export async function markDayDone(params: { courseId: string; dateKey: string }) {
+export async function markDayDone(params: {
+  courseId: string;
+  dateKey: string;
+}) {
   const reg = await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.getSubscription();
   if (!sub) return;
   await fetch("/api/push/done", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ subscription: sub.toJSON(), courseId: params.courseId, dateKey: params.dateKey }),
+    body: JSON.stringify({
+      subscription: sub.toJSON(),
+      courseId: params.courseId,
+      dateKey: params.dateKey,
+    }),
   });
 }
 
+export async function scheduleMinutely(params: {
+  courseId: string;
+  courseName: string;
+  minutes?: number;
+}) {
+  const { courseId, courseName } = params;
+  const minutes = params.minutes ?? 10;
+  const now = new Date();
+  const base = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    now.getHours(),
+    now.getMinutes(),
+    0,
+    0
+  );
+  const times: number[] = [];
+  for (let i = 0; i < minutes; i++)
+    times.push(new Date(base.getTime() + i * 60_000).getTime());
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await subscribeToPush();
+  if (!sub) throw new Error("Impossible de s'abonner aux notifications");
+  await fetch("/api/push/schedule", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      subscription: sub.toJSON(),
+      courseId,
+      courseName,
+      dateKey: makeDateKey(now),
+      times,
+    }),
+  });
+}

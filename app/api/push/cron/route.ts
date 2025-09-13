@@ -9,7 +9,10 @@ async function redis(path: string, init?: RequestInit) {
   if (!REDIS_URL || !REDIS_TOKEN) throw new Error("Redis non configuré");
   const res = await fetch(`${REDIS_URL}${path}`, {
     ...init,
-    headers: { ...(init?.headers || {}), Authorization: `Bearer ${REDIS_TOKEN}` },
+    headers: {
+      ...(init?.headers || {}),
+      Authorization: `Bearer ${REDIS_TOKEN}`,
+    },
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`Redis HTTP ${res.status}`);
@@ -24,41 +27,67 @@ function ensureConfig() {
   webpush.setVapidDetails(contact, pub, priv);
 }
 
-export async function POST() {
-  try {
-    if (!REDIS_URL || !REDIS_TOKEN) return NextResponse.json({ ok: false, reason: "redis_disabled" }, { status: 501 });
-    ensureConfig();
-    const now = Date.now();
-    // Récupère tous les items dus (score <= now)
-    const range = await redis(`/zrangebyscore/${encodeURIComponent(QUEUE_KEY)}/-inf/${now}`);
-    const items: string[] = Array.isArray(range?.result) ? range.result : [];
-    let sent = 0;
-    for (const raw of items) {
-      try {
-        const evt = JSON.parse(raw);
-        const { subscription, courseName, dateKey, ts } = evt || {};
-        // Si déjà fait ce jour-là pour ce device et cours, ne pas notifier
-        const doneKey = `push:done:${dateKey}`;
-        const member = encodeURIComponent(`${subscription?.endpoint}::${evt.courseId}`);
-        const done = await redis(`/sismember/${encodeURIComponent(doneKey)}/${member}`);
-        const isDone = done?.result === 1;
-        // Retire de la queue
-        await redis(`/zrem/${encodeURIComponent(QUEUE_KEY)}/${encodeURIComponent(raw)}`);
-        if (isDone) continue;
-        const payload = JSON.stringify({
-          title: "Rappel de révision",
-          body: courseName ? `C'est le moment pour: ${courseName}` : "C'est l'heure de réviser",
-          url: "/dashboard",
-        });
-        await webpush.sendNotification(subscription as any, payload);
-        sent++;
-      } catch {
-        // ignore per-item error
-      }
+async function runCron() {
+  if (!REDIS_URL || !REDIS_TOKEN)
+    return NextResponse.json(
+      { ok: false, reason: "redis_disabled" },
+      { status: 501 }
+    );
+  ensureConfig();
+  const now = Date.now();
+  const range = await redis(
+    `/zrangebyscore/${encodeURIComponent(QUEUE_KEY)}/-inf/${now}`
+  );
+  const items: string[] = Array.isArray(range?.result) ? range.result : [];
+  let sent = 0;
+  for (const raw of items) {
+    try {
+      const evt = JSON.parse(raw);
+      const { subscription, courseName, dateKey } = evt || {};
+      const doneKey = `push:done:${dateKey}`;
+      const member = encodeURIComponent(
+        `${subscription?.endpoint}::${evt.courseId}`
+      );
+      const done = await redis(
+        `/sismember/${encodeURIComponent(doneKey)}/${member}`
+      );
+      const isDone = done?.result === 1;
+      await redis(
+        `/zrem/${encodeURIComponent(QUEUE_KEY)}/${encodeURIComponent(raw)}`
+      );
+      if (isDone) continue;
+      const payload = JSON.stringify({
+        title: "Rappel de révision",
+        body: courseName
+          ? `C'est le moment pour: ${courseName}`
+          : "C'est l'heure de réviser",
+        url: "/dashboard",
+      });
+      await webpush.sendNotification(subscription as any, payload);
+      sent++;
+    } catch {
+      // ignore per-item error
     }
-    return NextResponse.json({ ok: true, sent, due: items.length });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "error" }, { status: 500 });
   }
+  return NextResponse.json({ ok: true, sent, due: items.length });
 }
 
+function isAuthorized(req: Request) {
+  const expected = process.env.CRON_SECRET;
+  if (!expected) return true; // si non défini, ne bloque pas (dev)
+  const h =
+    req.headers.get("authorization") || req.headers.get("Authorization");
+  return h === `Bearer ${expected}`;
+}
+
+export async function POST(req: Request) {
+  if (!isAuthorized(req))
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return runCron();
+}
+
+export async function GET(req: Request) {
+  if (!isAuthorized(req))
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return runCron();
+}
