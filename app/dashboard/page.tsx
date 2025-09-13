@@ -3,13 +3,15 @@ import { useEffect, useState } from "react";
 import { Card, CardBody } from "@heroui/card";
 import { Button } from "@heroui/button";
 import Link from "next/link";
-import { Divider } from "@heroui/divider";
 
 import { CourseForm } from "@/components/CourseForm";
 import { TagManager } from "@/components/TagManager";
 import { ReviewCard } from "@/components/ReviewCard";
 import { db, listDueCourses, getLatestPlans } from "@/db";
 import { formatRelativeToNow } from "@/lib/time";
+import { EnablePush } from "@/components/EnablePush";
+import { SendTestPush } from "@/components/SendTestPush";
+import { PWADebug } from "@/components/PWADebug";
 
 export default function DashboardPage() {
   const [priority, setPriority] = useState<{
@@ -72,7 +74,12 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold">Prochaine révision</h2>
           {priority ? (
             <>
-              <ReviewCard course={priority.course} tag={priority.tag} status={priority.status ?? null} onDeleted={refresh} />
+              <ReviewCard
+                course={priority.course}
+                tag={priority.tag}
+                status={priority.status ?? null}
+                onDeleted={refresh}
+              />
               {priority.next ? (
                 <p className="text-xs text-default-500">
                   {formatRelativeToNow(new Date(priority.next))} • le{" "}
@@ -97,12 +104,19 @@ export default function DashboardPage() {
       </Card>
 
       <div className="grid gap-5">
+        <EnablePush />
+        <SendTestPush />
+        <PWADebug />
         <CourseForm onCreated={refresh} />
         <TagManager onChanged={refresh} />
         <Card>
           <CardBody className="grid gap-2">
             <h3 className="text-lg font-semibold">Gestion des QCM</h3>
-            <Button as={Link} href="/dashboard/quizzes" className="w-full bg-gradient-to-r from-primary to-violet-600 text-white">
+            <Button
+              as={Link}
+              href="/dashboard/quizzes"
+              className="w-full bg-gradient-to-r from-primary to-violet-600 text-white"
+            >
               Voir et créer des QCM IA
             </Button>
           </CardBody>

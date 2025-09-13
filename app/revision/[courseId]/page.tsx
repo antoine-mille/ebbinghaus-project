@@ -8,6 +8,7 @@ import { Chip } from "@heroui/chip";
 import { QuizRunner } from "@/components/QuizRunner";
 import { db } from "@/db";
 import { scheduleNext } from "@/lib/scheduler";
+import { makeDateKey, markDayDone, scheduleReminders } from "@/lib/scheduleClient";
 
 export default function RevisionPage() {
   const params = useParams<{ courseId: string }>();
@@ -77,6 +78,18 @@ export default function RevisionPage() {
       lastOutcome: result.userOutcome,
       updatedAt: new Date(),
     });
+    // Marquer la journée comme faite pour stopper les rappels du jour
+    try {
+      await markDayDone({ courseId: course!.id, dateKey: makeDateKey(new Date()) });
+    } catch {
+      // ignore
+    }
+    // Planifier les rappels pour la prochaine révision
+    try {
+      await scheduleReminders({ courseId: course!.id, courseName: course!.name, nextReviewAt: nextDate });
+    } catch {
+      // ignore
+    }
     router.push("/dashboard");
   }
 

@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "CRPE Révisions ❤️",
+  name: "CRPE ❤️",
   description:
     "Plateforme de révision CRPE basée sur la courbe de l’oubli d’Ebbinghaus.",
   navItems: [
