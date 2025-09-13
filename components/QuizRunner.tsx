@@ -5,8 +5,13 @@ import { Button } from "@heroui/button";
 import { Spinner } from "@heroui/spinner";
 import { Progress } from "@heroui/progress";
 import { RadioGroup, Radio } from "@heroui/radio";
-import { quizProvider, type Quiz } from "@/lib/quizProvider";
-import { addQuizAttempt, completeQuizAttempt } from "@/db";
+import { type Quiz } from "@/lib/quizProvider";
+import {
+  addQuizAttempt,
+  completeQuizAttempt,
+  getLatestStoredQuizForCourse,
+} from "@/db";
+import Link from "next/link";
 
 export function QuizRunner({
   course,
@@ -35,14 +40,23 @@ export function QuizRunner({
     let mounted = true;
     (async () => {
       setLoading(true);
+      const stored = await getLatestStoredQuizForCourse(course.id);
+      if (!stored) {
+        if (mounted) setQuiz(null);
+        setLoading(false);
+        return;
+      }
+      const q: Quiz = {
+        questions: stored.questions.map((qq, idx) => ({
+          id: `${idx + 1}`,
+          prompt: qq.prompt,
+          options: qq.options,
+          correct: qq.correct,
+        })),
+      };
       const id = crypto.randomUUID();
       setAttemptId(id);
-      await addQuizAttempt({
-        id,
-        courseId: course.id,
-        startedAt: new Date(),
-      });
-      const q = await quizProvider.generate(course);
+      await addQuizAttempt({ id, courseId: course.id, startedAt: new Date() });
       if (mounted) setQuiz(q);
       setLoading(false);
     })();
@@ -51,21 +65,38 @@ export function QuizRunner({
     };
   }, [course.id]);
 
-  if (loading || !quiz) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-40">
-        <Spinner label="Génération du quiz..." />
+        <Spinner label="Chargement du QCM..." />
       </div>
+    );
+  }
+  if (!quiz) {
+    return (
+      <Card>
+        <CardBody className="grid gap-3 text-center">
+          <p className="text-sm text-default-500">
+            Aucun QCM disponible pour ce cours. <br />
+            Créez-en un depuis le tableau de bord.
+          </p>
+          <Button as={Link} href="/dashboard/quizzes" color="primary">
+            Aller à la gestion des QCM
+          </Button>
+        </CardBody>
+      </Card>
     );
   }
 
   async function validateAll() {
     if (!quiz) return;
-    const a = Object.entries(answers).map(([questionId, optionIndex]) => ({
-      questionId,
-      optionIndex,
-    }));
-    const score = await quizProvider.score(a, quiz);
+    const correct = quiz.questions.reduce(
+      (acc, q) =>
+        acc +
+        (answers[q.id] !== undefined && answers[q.id] === q.correct ? 1 : 0),
+      0
+    );
+    const score = correct / quiz.questions.length;
     setScored({ aiScore: score });
     if (attemptId) {
       await completeQuizAttempt(attemptId, { aiScore: score });

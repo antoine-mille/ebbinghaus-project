@@ -23,7 +23,7 @@ export default function CoursesPage() {
   const [items, setItems] = useState<
     {
       course: { id: string; name: string; description?: string };
-      tag?: { name: string; color: string } | null;
+      tag?: { id: string; name: string; color: string } | null;
       next?: Date | null;
       status?: "success" | "fail" | null;
     }[]
@@ -118,7 +118,11 @@ export default function CoursesPage() {
           ) : null}
         </div>
       </div>
-      <Modal isOpen={isFilterOpen} onOpenChange={setIsFilterOpen} placement="center">
+      <Modal
+        isOpen={isFilterOpen}
+        onOpenChange={setIsFilterOpen}
+        placement="center"
+      >
         <ModalContent>
           {(onClose) => (
             <>
@@ -141,7 +145,7 @@ export default function CoursesPage() {
                   }}
                 >
                   {tags.map((t) => (
-                    <SelectItem key={t.id} value={t.id} textValue={t.name}>
+                    <SelectItem key={t.id} textValue={t.name}>
                       <div className="flex items-center gap-2">
                         <span
                           className="inline-block w-4 h-4 rounded-sm"
@@ -210,7 +214,12 @@ export default function CoursesPage() {
       <div className="grid gap-3">
         {filtered.map((it) => (
           <div key={it.course.id} className="grid gap-2">
-            <ReviewCard course={it.course} tag={it.tag} status={it.status ?? null} onDeleted={reload} />
+            <ReviewCard
+              course={it.course}
+              tag={it.tag}
+              status={it.status ?? null}
+              onDeleted={reload}
+            />
             {it.next ? (
               <p className="text-xs text-default-500">
                 Prochaine révision {formatRelativeToNow(new Date(it.next))}

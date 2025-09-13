@@ -17,7 +17,10 @@ export function ReviewCard({
   onDeleted?: () => void;
 }) {
   async function handleDelete() {
-    const ok = typeof window !== "undefined" ? window.confirm(`Supprimer le cours "${course.name}" ?`) : false;
+    const ok =
+      typeof window !== "undefined"
+        ? window.confirm(`Supprimer le cours "${course.name}" ?`)
+        : false;
     if (!ok) return;
     await deleteCourseCascade(course.id);
     onDeleted?.();

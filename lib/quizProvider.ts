@@ -10,7 +10,11 @@ export type Quiz = {
 };
 
 export interface QuizProvider {
-  generate(course: { id: string; name: string; description?: string }): Promise<Quiz>;
+  generate(course: {
+    id: string;
+    name: string;
+    description?: string;
+  }): Promise<Quiz>;
   score(
     answers: { questionId: string; optionIndex: number }[],
     quiz: Quiz
@@ -18,7 +22,11 @@ export interface QuizProvider {
 }
 
 export class MockQuizProvider implements QuizProvider {
-  async generate(course: { id: string; name: string; description?: string }): Promise<Quiz> {
+  async generate(course: {
+    id: string;
+    name: string;
+    description?: string;
+  }): Promise<Quiz> {
     const base = course.name;
     const mk = (
       prompt: string,
@@ -32,7 +40,12 @@ export class MockQuizProvider implements QuizProvider {
         [options[i], options[j]] = [options[j], options[i]];
       }
       const correctIndex = options.indexOf(correct);
-      return { id: crypto.randomUUID(), prompt, options, correct: correctIndex };
+      return {
+        id: crypto.randomUUID(),
+        prompt,
+        options,
+        correct: correctIndex,
+      };
     };
 
     const questions: QuizQuestion[] = [
@@ -48,21 +61,13 @@ export class MockQuizProvider implements QuizProvider {
       mk(
         `Lequel est un bon exemple lié à: ${base} ?`,
         `Exemple correct lié à ${base}`,
-        [
-          `Contre-exemple de ${base}`,
-          `Hors sujet`,
-          `Détail trompeur`,
-        ]
+        [`Contre-exemple de ${base}`, `Hors sujet`, `Détail trompeur`]
       ),
-      mk(
-        `Quel est un point clé de: ${base} ?`,
-        `Point clé de ${base}`,
-        [
-          `Détail mineur de ${base}`,
-          `Information superflue`,
-          `Hypothèse incorrecte`,
-        ]
-      ),
+      mk(`Quel est un point clé de: ${base} ?`, `Point clé de ${base}`, [
+        `Détail mineur de ${base}`,
+        `Information superflue`,
+        `Hypothèse incorrecte`,
+      ]),
     ];
 
     return { questions };
@@ -73,9 +78,49 @@ export class MockQuizProvider implements QuizProvider {
     quiz: Quiz
   ): Promise<number> {
     const byId = new Map(answers.map((a) => [a.questionId, a.optionIndex]));
-    const correct = quiz.questions.reduce((acc, q) => acc + (byId.get(q.id) === q.correct ? 1 : 0), 0);
+    const correct = quiz.questions.reduce(
+      (acc, q) => acc + (byId.get(q.id) === q.correct ? 1 : 0),
+      0
+    );
     return correct / quiz.questions.length;
   }
 }
 
-export const quizProvider = new MockQuizProvider();
+export class ApiQuizProvider implements QuizProvider {
+  async generate(course: {
+    id: string;
+    name: string;
+    description?: string;
+  }): Promise<Quiz> {
+    try {
+      const res = await fetch("/api/quiz", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ course }),
+      });
+      if (!res.ok) throw new Error("API error");
+      const data = (await res.json()) as Quiz;
+      // Light runtime guard
+      if (!data?.questions || !Array.isArray(data.questions))
+        throw new Error("Invalid quiz");
+      return data;
+    } catch {
+      // Fallback to mock if server not configured
+      const mock = new MockQuizProvider();
+      return mock.generate(course);
+    }
+  }
+  async score(
+    answers: { questionId: string; optionIndex: number }[],
+    quiz: Quiz
+  ): Promise<number> {
+    const byId = new Map(answers.map((a) => [a.questionId, a.optionIndex]));
+    const correct = quiz.questions.reduce(
+      (acc, q) => acc + (byId.get(q.id) === q.correct ? 1 : 0),
+      0
+    );
+    return correct / quiz.questions.length;
+  }
+}
+
+export const quizProvider = new ApiQuizProvider();

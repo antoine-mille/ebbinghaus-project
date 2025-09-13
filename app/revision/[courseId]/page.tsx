@@ -55,23 +55,23 @@ export default function RevisionPage() {
     userOutcome: "success" | "fail";
   }) {
     const { nextLevel, nextDate } = scheduleNext({
-      level: plan.level,
+      level: plan!.level,
       outcome: result.userOutcome,
     });
     // Record result and plan
     await db.reviewEvents.add({
       id: crypto.randomUUID(),
-      courseId: course.id,
+      courseId: course!.id,
       date: new Date(),
       outcome: result.userOutcome,
       source: "manual",
     });
     const existing = await db.reviewPlans
-      .where({ courseId: course.id })
+      .where({ courseId: course!.id })
       .first();
     await db.reviewPlans.put({
       id: existing?.id ?? crypto.randomUUID(),
-      courseId: course.id,
+      courseId: course!.id,
       level: nextLevel,
       nextReviewAt: nextDate,
       lastOutcome: result.userOutcome,

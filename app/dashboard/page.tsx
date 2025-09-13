@@ -99,6 +99,14 @@ export default function DashboardPage() {
       <div className="grid gap-5">
         <CourseForm onCreated={refresh} />
         <TagManager onChanged={refresh} />
+        <Card>
+          <CardBody className="grid gap-2">
+            <h3 className="text-lg font-semibold">Gestion des QCM</h3>
+            <Button as={Link} href="/dashboard/quizzes" className="w-full bg-gradient-to-r from-primary to-violet-600 text-white">
+              Voir et créer des QCM IA
+            </Button>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );

@@ -65,3 +65,19 @@ export const PresetTagColors = [
   "#ea580c", // orange-600
 ] as const;
 
+// Stored AI-generated quizzes (cache)
+export const StoredQuizQuestionSchema = z.object({
+  prompt: z.string().min(1),
+  options: z.array(z.string().min(1)).length(4),
+  correct: z.number().int().min(0).max(3),
+});
+
+export const StoredQuizSchema = z.object({
+  id: z.string().uuid(),
+  courseId: z.string().uuid(),
+  createdAt: z.date(),
+  source: z.enum(["AI", "mock"]).default("AI"),
+  questions: z.array(StoredQuizQuestionSchema).min(1),
+});
+
+export type StoredQuiz = z.infer<typeof StoredQuizSchema>;

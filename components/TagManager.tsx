@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
-import { Chip } from "@heroui/chip";
 import { Select, SelectItem } from "@heroui/select";
 import { z } from "zod";
 
@@ -73,7 +72,7 @@ export function TagManager({ onChanged }: { onChanged?: () => void }) {
             }}
           >
             {PresetTagColors.map((c) => (
-              <SelectItem key={c} value={c} textValue={c}>
+              <SelectItem key={c} textValue={c}>
                 <div className="flex items-center gap-2">
                   <span
                     className="inline-block w-4 h-4 rounded-sm"
