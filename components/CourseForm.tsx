@@ -9,7 +9,6 @@ import { z } from "zod";
 import { addCourse, listTags, upsertInitialPlan } from "@/db/index";
 import { CourseSchema } from "@/types/schemas";
 import { initialNextDate } from "@/lib/scheduler";
-import { scheduleReminders } from "@/lib/scheduleClient";
 
 const FormSchema = CourseSchema.pick({
   name: true,
@@ -50,15 +49,7 @@ export function CourseForm({ onCreated }: { onCreated?: () => void }) {
         tagId,
       });
       const course = await addCourse(parsed);
-      const next = initialNextDate();
-      await upsertInitialPlan(course.id, next);
-      try {
-        await scheduleReminders({
-          courseId: course.id,
-          courseName: course.name,
-          nextReviewAt: next,
-        });
-      } catch {}
+      await upsertInitialPlan(course.id, initialNextDate());
       setName("");
       setDescription("");
       setTagId(undefined);

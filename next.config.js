@@ -8,8 +8,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   fallbacks: {
     document: "/offline",
   },
-  // Permet d'étendre le SW généré avec un SW custom (app/sw.ts)
-  extendDefaultSW: true,
+  // notifications removed: do not wire a custom SW
 });
 
 /** @type {import('next').NextConfig} */

@@ -5,7 +5,6 @@ export const siteConfig = {
   description:
     "Plateforme de révision CRPE basée sur la courbe de l’oubli d’Ebbinghaus.",
   navItems: [
-    { label: "Accueil", href: "/dashboard" },
     { label: "QCM", href: "/dashboard/quizzes" },
     { label: "Statistiques", href: "/stats" },
   ],

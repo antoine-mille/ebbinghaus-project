@@ -9,7 +9,7 @@ import { TagManager } from "@/components/TagManager";
 import { ReviewCard } from "@/components/ReviewCard";
 import { db, listDueCourses, getLatestPlans } from "@/db";
 import { formatRelativeToNow } from "@/lib/time";
-import { EnablePush } from "@/components/EnablePush";
+// notifications removed
 
 export default function DashboardPage() {
   const [priority, setPriority] = useState<{
@@ -78,6 +78,7 @@ export default function DashboardPage() {
                 status={priority.status ?? null}
                 onDeleted={refresh}
               />
+
               {priority.next ? (
                 <p className="text-xs text-default-500">
                   {formatRelativeToNow(new Date(priority.next))} • le{" "}
@@ -102,7 +103,6 @@ export default function DashboardPage() {
       </Card>
 
       <div className="grid gap-5">
-        <EnablePush />
         <CourseForm onCreated={refresh} />
         <TagManager onChanged={refresh} />
         <Card>

@@ -10,8 +10,15 @@ import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { LogoutIcon } from "@/components/icons";
+import { createClient } from "@/lib/supabase/server";
 
-export const Navbar = () => {
+export const Navbar = async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
       <NavbarContent className="basis-full" justify="start">
@@ -44,6 +51,20 @@ export const Navbar = () => {
         <NavbarItem>
           <ThemeSwitch />
         </NavbarItem>
+        {user ? (
+          <NavbarItem>
+            <form action="/auth/logout" method="post">
+              <button
+                type="submit"
+                title="Se déconnecter"
+                aria-label="Se déconnecter"
+                className="inline-flex items-center gap-1 text-sm cursor-pointer text-default-600 hover:text-danger transition-colors"
+              >
+                <LogoutIcon />
+              </button>
+            </form>
+          </NavbarItem>
+        ) : null}
       </NavbarContent>
     </HeroUINavbar>
   );

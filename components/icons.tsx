@@ -235,3 +235,31 @@ export const CloseIcon = (props: IconSvgProps) => (
     />
   </svg>
 );
+
+export const LogoutIcon = (props: IconSvgProps) => (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    focusable="false"
+    height="1em"
+    role="presentation"
+    viewBox="0 0 24 24"
+    width="1em"
+    {...props}
+  >
+    <path
+      d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M10 12h10M17 9l3 3-3 3"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
